@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 /**
  * @author zhailiang
@@ -22,6 +23,9 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private SecurityProperties securityProperties;
+
+    @Autowired
+    private AuthenticationSuccessHandler imoocAuthenticationSuccessHandler;
 
 
     @Bean
@@ -37,7 +41,8 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 //        http.httpBasic()//httpBasic登录进行身份认证
 //              .loginPage("/imooc-signIn.html")//配置认证不通过后的跳转的登录页面（但是这样写无论是浏览器还是接口调用都只会返回到页面上）
                 .loginPage("/authentication/require")//配置认证不通过后跳转的登录方法
-                .loginProcessingUrl("/authentication/form")//配置UsernamePasswordAuthenticationFilter（即ss表单登录校验实现）会处理的url
+                .loginProcessingUrl("/authentication/form")//配置UsernamePasswordAuthenticationFilter（即ss表单登录校验实现）会处理的url，即这个url可以看做登录方法的url
+                .successHandler(imoocAuthenticationSuccessHandler)//配置自定义登录成功处理器，登录成功后用这里配置的处理器
                 .and()
                 .authorizeRequests()//对下面请求
                 .antMatchers("/authentication/require"
