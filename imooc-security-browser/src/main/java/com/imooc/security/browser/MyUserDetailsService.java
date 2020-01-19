@@ -30,16 +30,18 @@ public class MyUserDetailsService implements UserDetailsService {
 //	private PasswordEncoder passwordEncoder;
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.security.core.userdetails.UserDetailsService#
-	 * loadUserByUsername(java.lang.String)
+	 * 这一步是在平时登录中获取用户信息与数据库中做比较完成认证，如果校验成功会把用户信息放在session里面
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		logger.info("登录用户名:" + username);
-		//ss会自动把输入的密码和这里的123456做比较
+
+
+       //这里可以是根据用户名去数据库查找用户信息的代码
+
+		//这一步ss会把用户信息组装，并且ss会自动把请求中的密码和这数据库里的密码完成是否匹配的操作
 		return new User(username,"123456",AuthorityUtils.commaSeparatedStringToAuthorityList("admin"));
+	                                     //"123456"是数据库的密码   // 第三个参数是授权 也应该是数据库中查出来的权限
 	}
 
 
