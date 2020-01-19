@@ -4,6 +4,8 @@
 package com.imooc.security.browser.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.imooc.security.browser.support.SimpleResponse;
+import com.imooc.security.core.properties.LoginResponseType;
 import com.imooc.security.core.properties.SecurityProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
@@ -25,7 +28,7 @@ import java.io.IOException;
  *
  */
 @Component("imoocAuthenticationFailureHandler")
-public class ImoocAuthenticationFailureHandler implements AuthenticationFailureHandler {
+public class ImoocAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -42,14 +45,17 @@ public class ImoocAuthenticationFailureHandler implements AuthenticationFailureH
      *  AuthenticationException 是发生错误所返回的异常
      */
     @Override
-    public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
-
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
 
         logger.info("登录失败");
-        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(e));
 
+        if (LoginResponseType.JSON.equals(securityProperties.getBrowser().getLoginType())) {
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(new SimpleResponse(exception.getMessage())));
+        }else{
+            super.onAuthenticationFailure(request, response, exception);
+        }
 
     }
 }
