@@ -30,7 +30,8 @@ public class MyUserDetailsService implements UserDetailsService {
 //	private PasswordEncoder passwordEncoder;
 
 	/*
-	 * 这一步是在平时登录中获取用户信息与数据库中做比较完成认证，如果校验成功会把用户信息放在session里面
+	 * 这个方法是在平时登录中获取用户信息与数据库中做比较完成认证，如果校验成功会把用户信息放在session里面
+	 * 方法的返回值不一定要是UserDetails，只需要是UserDetails的自定义实现类即可
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -39,8 +40,17 @@ public class MyUserDetailsService implements UserDetailsService {
 
        //这里可以是根据用户名去数据库查找用户信息的代码
 
-		//这一步ss会把用户信息组装，并且ss会自动把请求中的密码和这数据库里的密码完成是否匹配的操作
-		return new User(username,"123456",AuthorityUtils.commaSeparatedStringToAuthorityList("admin"));
+		//根据查找到的用户信息判断用户是否被冻结
+        return new User(username,
+				 "123456",
+				 true,//是否可用（是否被删了，删了一般就不能恢复了）
+				 true,//没过期
+				 true,//密码没过期
+				 false,//被锁定了(锁定一般还可以恢复)
+				 AuthorityUtils.commaSeparatedStringToAuthorityList("admin"));
+
+		//这一步ss会把用户信息组装，并且ss会自动把请求中的密码和这数据库里的密码完成是否匹配的基本操作
+		//return new User(username,"123456",AuthorityUtils.commaSeparatedStringToAuthorityList("admin"));
 	                                     //"123456"是数据库的密码   // 第三个参数是授权 也应该是数据库中查出来的权限
 	}
 
