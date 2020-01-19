@@ -15,6 +15,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.social.connect.web.ProviderSignInUtils;
@@ -54,8 +55,16 @@ public class UserController {
 		String userId = user.getUsername();
 //		providerSignInUtils.doPostSignUp(userId, new ServletWebRequest(request));
 	}
-	
-	@GetMapping("/me")
+
+	//获取当前用户信息
+	@GetMapping("/getCurrentUserByAuthentication")
+	public Object getCurrentUser(Authentication authentication ) {
+		return authentication;
+	}
+
+
+	//获取当前用户信息
+	@GetMapping("/getCurrentUserByUserDetails")
 	public Object getCurrentUser(@AuthenticationPrincipal UserDetails user) {
 		return user;
 	}
