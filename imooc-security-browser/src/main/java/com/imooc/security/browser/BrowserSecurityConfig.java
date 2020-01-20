@@ -10,11 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import javax.sql.DataSource;
 
 /**
  * @author zhailiang
@@ -34,12 +39,27 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthenticationFailureHandler imoocAuthenticationFailureHandler;
 
 
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+//		tokenRepository.setCreateTableOnStartup(true);第一次启动时需要
+        return tokenRepository;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -56,6 +76,11 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/authentication/form")//配置UsernamePasswordAuthenticationFilter（即ss表单登录校验实现）会处理的url，即这个url可以看做登录方法的url
                 .successHandler(imoocAuthenticationSuccessHandler)//配置自定义登录成功处理器，登录成功后用这里配置的处理器
                 .failureHandler(imoocAuthenticationFailureHandler)//配置自定义登录失败处理器，登录失败后用这里配置的处理器
+                .and()
+                .rememberMe()//记住我的配置
+                .tokenRepository(persistentTokenRepository())//记住我的TokenRepository
+                .tokenValiditySeconds(securityProperties.getBrowser().getRememberMeSeconds())//记住我的有效时间
+                .userDetailsService(userDetailsService)//用这个去登录
                 .and()
                 .authorizeRequests()//对下面请求
                 .antMatchers("/authentication/require"

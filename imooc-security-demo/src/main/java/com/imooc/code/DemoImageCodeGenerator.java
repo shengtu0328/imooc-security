@@ -12,7 +12,7 @@ import org.springframework.web.context.request.ServletWebRequest;
  * @author zhailiang
  *  demo自定义的验证码生成器
  */
-@Component("imageCodeGenerator")
+//@Component("imageCodeGenerator")
 public class DemoImageCodeGenerator implements ValidateCodeGenerator {
 
     /* (non-Javadoc)
