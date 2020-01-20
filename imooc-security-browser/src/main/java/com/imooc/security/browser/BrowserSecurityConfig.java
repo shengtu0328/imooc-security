@@ -4,6 +4,7 @@
 package com.imooc.security.browser;
 
 import com.imooc.security.core.properties.SecurityProperties;
+import com.imooc.security.core.validate.code.ValidateCodeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * @author zhailiang
@@ -41,8 +43,10 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        http.formLogin()//表单登录进行身份认证
+        ValidateCodeFilter validateCodeFilter=new ValidateCodeFilter();
+        validateCodeFilter.setAuthenticationFailureHandler(imoocAuthenticationFailureHandler);
+        http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)//在过滤器链中添加自定义验证码过滤器 在UsernamePasswordAuthenticationFilter之前
+                .formLogin()//表单登录进行身份认证
 //        http.httpBasic()//httpBasic登录进行身份认证
 //              .loginPage("/imooc-signIn.html")//配置认证不通过后的跳转的登录页面（但是这样写无论是浏览器还是接口调用都只会返回到页面上）
                 .loginPage("/authentication/require")//配置认证不通过后跳转的登录方法

@@ -31,7 +31,7 @@ import java.util.Random;
 @RestController
 public class ValidateCodeController {
 
-	private  static final  String SESSION_KEY="SESSION_KEY_IMAGE_CODE";
+	public  static final  String SESSION_KEY="SESSION_KEY_IMAGE_CODE";
 
 	private SessionStrategy sessionStrategy= new HttpSessionSessionStrategy();
 
@@ -39,8 +39,8 @@ public class ValidateCodeController {
 	@GetMapping("/code/image")
 	public void createCode(HttpServletRequest request, HttpServletResponse response)throws IOException {
 		ImageCode imageCode= createImageCode(request);
-		sessionStrategy.setAttribute(new ServletWebRequest(request),SESSION_KEY,imageCode);
-		ImageIO.write(imageCode.getImage(),"JPEG",response.getOutputStream());
+		sessionStrategy.setAttribute(new ServletWebRequest(request),SESSION_KEY,imageCode);//同过请求拿session  SESSION_KEY就是session里的key imageCode是SESSION_KEY的value
+		ImageIO.write(imageCode.getImage(),"JPEG",response.getOutputStream());//将图片写出去
 	}
 
 	private ImageCode createImageCode(HttpServletRequest request) {
