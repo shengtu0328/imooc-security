@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.imooc.security.core.properties.SecurityProperties;
 import com.imooc.security.core.validate.code.image.ImageCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
@@ -35,18 +36,21 @@ public class ValidateCodeController {
 
 	private SessionStrategy sessionStrategy= new HttpSessionSessionStrategy();
 
+	@Autowired
+	private SecurityProperties securityProperties;
 
 	@GetMapping("/code/image")
 	public void createCode(HttpServletRequest request, HttpServletResponse response)throws IOException {
-		ImageCode imageCode= createImageCode(request);
+
+		ImageCode imageCode= createImageCode(new ServletWebRequest(request));
 		sessionStrategy.setAttribute(new ServletWebRequest(request),SESSION_KEY,imageCode);//同过请求拿session  SESSION_KEY就是session里的key imageCode是SESSION_KEY的value
 		ImageIO.write(imageCode.getImage(),"JPEG",response.getOutputStream());//将图片写出去
 	}
 
-	private ImageCode createImageCode(HttpServletRequest request) {
+	private ImageCode createImageCode(ServletWebRequest request) {
 
-		int width = 67;//图片的宽
-		int height =23;//图片的高
+		int width = ServletRequestUtils.getIntParameter(request.getRequest(),"width",securityProperties.getCode().getImage().getWidth());//图片的宽
+		int height =ServletRequestUtils.getIntParameter(request.getRequest(),"height",securityProperties.getCode().getImage().getHeight());//图片的高
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
 		Graphics g = image.getGraphics();
@@ -66,7 +70,7 @@ public class ValidateCodeController {
 		}
 
 		String sRand = "";
-		for (int i = 0; i < 4; i++) {//数字长度
+		for (int i = 0; i < securityProperties.getCode().getImage().getLength(); i++) {//验证码位数长度
 			String rand = String.valueOf(random.nextInt(10));
 			sRand += rand;
 			g.setColor(new Color(20 + random.nextInt(110), 20 + random.nextInt(110), 20 + random.nextInt(110)));
@@ -75,7 +79,7 @@ public class ValidateCodeController {
 
 		g.dispose();
 
-		return new ImageCode(image, sRand,60);
+		return new ImageCode(image, sRand,securityProperties.getCode().getImage().getExpireIn());
 	}
 
 	private Color getRandColor(int fc, int bc) {
