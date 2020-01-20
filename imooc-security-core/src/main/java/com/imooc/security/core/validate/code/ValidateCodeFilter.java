@@ -3,13 +3,16 @@
  */
 package com.imooc.security.core.validate.code;
 
+import com.imooc.security.core.properties.SecurityProperties;
 import com.imooc.security.core.validate.code.image.ImageCode;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
 import org.springframework.social.connect.web.SessionStrategy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -20,6 +23,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author zhailiang
@@ -28,7 +33,7 @@ import java.io.IOException;
  */
 @Data
 @Component("validateCodeFilter")//实现了OncePerRequestFilter代表这个过滤器只会被调用一次
-public class ValidateCodeFilter extends OncePerRequestFilter {
+public class ValidateCodeFilter extends OncePerRequestFilter implements InitializingBean {
 
     //认证失败处理器
     private AuthenticationFailureHandler authenticationFailureHandler;
@@ -40,24 +45,51 @@ public class ValidateCodeFilter extends OncePerRequestFilter {
     private SessionStrategy sessionStrategy = new HttpSessionSessionStrategy();
 
 
+    private Set<String> urls = new HashSet<>();
+
+
+    private SecurityProperties securityProperties;
+
+    private AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    //将验证码拦截的接口url传进来
+    @Override
+    public void afterPropertiesSet() throws ServletException {
+        super.afterPropertiesSet();
+        if (securityProperties!=null) {
+            String[] configUrls = StringUtils.splitByWholeSeparatorPreserveAllTokens(securityProperties.getCode().getImage().getUrl(), ",");
+            for (String configUrl : configUrls) {
+                urls.add(configUrl);
+            }
+        }
+        urls.add("/authentication/form");
+    }
+
     //逻辑判断
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse reponse, FilterChain filterChain) throws ServletException, IOException {
 
         //  只在登录表单提交的时候使用这个过滤器
-        if (StringUtils.equals("/authentication/form", request.getRequestURI())
-                && StringUtils.equalsIgnoreCase(request.getMethod(), "post")) {
+//        if (StringUtils.equals("/authentication/form", request.getRequestURI())
+//                && StringUtils.equalsIgnoreCase(request.getMethod(), "post")) {
 
+        boolean action = false;
+        for (String url : urls) {
+            if (pathMatcher.match(url, request.getRequestURI())) {
+                action = true;
+            }
+        }
 
+        if (action) {
             try {
                 validate(new ServletWebRequest(request));//session可以从 ServletWebRequest中拿
             } catch (ValidateCodeException e) {
                 authenticationFailureHandler.onAuthenticationFailure(request, reponse, e);
                 return;//return代表不走后面的过滤器
             }
-
-
         }
+
+//        }
 
         //不是就往下走其他过滤器
         filterChain.doFilter(request, reponse);

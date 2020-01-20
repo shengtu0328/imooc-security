@@ -45,6 +45,9 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         ValidateCodeFilter validateCodeFilter=new ValidateCodeFilter();
         validateCodeFilter.setAuthenticationFailureHandler(imoocAuthenticationFailureHandler);
+        validateCodeFilter.setSecurityProperties(securityProperties);
+        validateCodeFilter.afterPropertiesSet();
+
         http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)//在过滤器链中添加自定义验证码过滤器 在UsernamePasswordAuthenticationFilter之前
                 .formLogin()//表单登录进行身份认证
 //        http.httpBasic()//httpBasic登录进行身份认证
