@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.social.security.SpringSocialConfigurer;
 
 import javax.sql.DataSource;
 
@@ -49,6 +50,10 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private SmsCodeAuthenticationSecurityConfig smsCodeAuthenticationSecurityConfig;
+
+
+    @Autowired
+    private SpringSocialConfigurer imoocSpringSocialConfigurer;
 
 
     @Bean
@@ -102,7 +107,9 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()//都需要认证/登录
                 .and()
                 .csrf().disable()//暂时关闭 ss的csrf验证
-                .apply(smsCodeAuthenticationSecurityConfig);
+                .apply(smsCodeAuthenticationSecurityConfig)
+                    .and()
+                .apply(imoocSpringSocialConfigurer);
         super.configure(http);
     }
 }
