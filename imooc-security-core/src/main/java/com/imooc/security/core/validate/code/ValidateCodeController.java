@@ -11,6 +11,7 @@ import com.imooc.security.core.properties.SecurityProperties;
 import com.imooc.security.core.validate.code.image.ImageCode;
 import com.imooc.security.core.validate.code.sms.SmsCodeSender;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
 import org.springframework.social.connect.web.SessionStrategy;
 import org.springframework.web.bind.ServletRequestBindingException;
@@ -35,10 +36,13 @@ public class ValidateCodeController {
 	@Autowired
 	private SecurityProperties securityProperties;
 
+
+	@Qualifier("imageValidateCodeGenerator")
 	@Autowired
 	private ValidateCodeGenerator imageCodeGenerator;//@Bean方式注入 都是按name
 
 
+	@Qualifier("smsValidateCodeGenerator")
 	@Autowired
 	private ValidateCodeGenerator  smsCodeGenerator;//@Compent方式注入 都是按name
 
